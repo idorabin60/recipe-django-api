@@ -36,7 +36,7 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class ManagaUserView(generics.RetrieveAPIView):
+class ManagaUserView(generics.RetrieveUpdateAPIView):
     """Manage the auth user"""
     serializer_class = UserSerializer
     authentication_classes = [authentication.TokenAuthentication]
@@ -45,3 +45,14 @@ class ManagaUserView(generics.RetrieveAPIView):
     def get_object(self):
         """rertrive and return the auth user"""
         return self.request.user
+
+    def get_serializer_context(self):
+        """
+        Additional context provided to the serializer.
+        Include the authentication token in the context.
+        """
+        context = super().get_serializer_context()
+        user = self.request.user
+        token, created = Token.objects.get_or_create(user=user)
+        context['token'] = token.key
+        return context
